@@ -2,6 +2,7 @@
 #include <Arduino_FreeRTOS.h>
 #include <Servo.h>
 #include <DHTesp.h>
+#include <HX711.h>
 
 //Pin configuration
 #define DHT11_SENSOR 2
@@ -13,13 +14,18 @@
 //Library Objects
 DHTesp dht;
 Servo servo;
+HX711 scale;
 
 TaskHandle_t handler_main_thread, 
   handler_dispense, 
   handler_temp_hum_status,
   handler_food_water_level;
 
-float temperature, humidity, water_level;
+//Load Cell Variables
+float calibration_factor = 2300;
+float zero_factor = 304509;
+
+float temperature, humidity, water_reading, food_reading;
 String foodLevel, waterLevel, command;
 int serving;
 
@@ -27,6 +33,10 @@ void setup() {
   Serial.begin(9600);
 
   dht.setup(DHT11_SENSOR, DHTesp::DHT11);
+  
+  scale.begin(LOAD_CELL_DT, LOAD_CELL_SCK);
+  scale.set_scale(calibration_factor);
+  scale.set_offset(zero_factor);
   
   servo.attach(SERVO_MOTOR);
   servo.write(180);
@@ -85,27 +95,37 @@ static void TemperatureHumidityStatus(void* parameters) {
 static void FoodWaterLevelStatus(void* parameters) {
   while (1) {
     //food level implementation
-    foodLevel = "Low";
+    food_reading = scale.get_units(), 10;
+    
+    if (food_reading <= 80) {
+      foodLevel = "Empty";
+    }
+    else if (food_reading > 80 && food_reading <= 150) {
+      foodLevel = "Low";
+    }
+    else if (food_reading > 150 && food_reading <= 220) {
+      foodLevel = "Medium";
+    }
+    else if (food_reading > 220) {
+      foodLevel = "High";
+    }
 
     //water level implementation
-    water_level = analogRead(WATER_SENSOR);
+    water_reading = analogRead(WATER_SENSOR);
     
-    int lowerThreshold = 420;
-    int upperThreshold = 520;
-
-    if (water_level == 0) {
+    if (water_reading <= 300) {
       waterLevel = "Empty";
     }
-    else if (water_level > 0 && water_level <= lowerThreshold) {
+    else if (water_reading > 300 && water_reading <= 440) {
       waterLevel = "Low";
     }
-    else if (water_level > lowerThreshold && water_level <= upperThreshold) {
+    else if (water_reading > 440 && water_reading <= 490) {
       waterLevel = "Medium";
     }
-    else if (water_level > upperThreshold) {
+    else if (water_reading > 490) {
       waterLevel = "High";
     }
-        
+    
     Serial.print("{\"food\" : \"");
     Serial.print(foodLevel);
     Serial.print("\" , \"water\" : \"");

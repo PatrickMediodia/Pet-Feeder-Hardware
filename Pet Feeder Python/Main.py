@@ -7,7 +7,6 @@ from Controller import updateTemperatureHumidityStatus, updateFoodWaterLevelStat
 serialObject = serial.Serial('COM3', 9600, timeout = 1)
 
 startTime = time.time()
-time.sleep(3)
 
 def getTempHum():
     sendRequest("TempHum")
@@ -34,6 +33,7 @@ def ManualDispenseFood():
         postDispenseLog(serving, 'Manual')
 
 def AutomaticDispenseFood():
+    
     automaticDispenseFoodStatus = getAutomaticDispenseStatus()
 
     for dispenseSlot in automaticDispenseFoodStatus:
