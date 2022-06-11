@@ -16,7 +16,7 @@ DHTesp dht;
 Servo servo;
 HX711 scale;
 
-TaskHandle_t handler_main_thread, 
+TaskHandle_t handler_main_thread,
   handler_dispense, 
   handler_temp_hum_status,
   handler_food_water_level;
@@ -68,7 +68,7 @@ static void MainThread(void* parameters) {
       else if (command == "FoodWater") {
         vTaskResume(handler_food_water_level);
       }
-      
+      //Dispense,5
       else if (command.indexOf("Dispense") >= 0) {      
         int index = command.indexOf(',');
         serving = command.substring(index + 1, command.length()).toInt();

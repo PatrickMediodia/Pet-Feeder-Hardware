@@ -5,6 +5,7 @@ import time
 from Controller import updateTemperatureHumidityStatus, updateFoodWaterLevelStatus, getMannualDispenseStatus, setManualDispenseFoodStatus, getAutomaticDispenseStatus, postDispenseLog
 
 serialObject = serial.Serial('COM3', 9600, timeout = 1)
+time.sleep(3)
 
 startTime = time.time()
 
@@ -33,7 +34,6 @@ def ManualDispenseFood():
         postDispenseLog(serving, 'Manual')
 
 def AutomaticDispenseFood():
-    
     automaticDispenseFoodStatus = getAutomaticDispenseStatus()
 
     for dispenseSlot in automaticDispenseFoodStatus:
@@ -74,9 +74,6 @@ while True:
         
         #restart timer
         startTime = time.time()
-
+    
     ManualDispenseFood()
     AutomaticDispenseFood()
-
-
-
